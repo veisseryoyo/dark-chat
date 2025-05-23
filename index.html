@@ -1,205 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Chat App</title>
+  <title>Chat App (Google Sheets)</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
+      background: #c8f7c5;
       margin: 0;
-      padding: 0;
-      background-color: #00ff37;
+      padding: 20px;
     }
     .container {
-      width: 100%;
       max-width: 400px;
       margin: auto;
+      background: white;
       padding: 20px;
-      background: #00ff37;
-      border-radius: 1px;
-      box-shadow: 0 0 10px rgba(255, 0, 0, 0);
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-    .hidden {
-      display: none;
-    }
-    input[type="text"], input[type="password"] {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin: 5px 0;
+      box-sizing: border-box;
     }
-    button {
-      width: 50%;
-      padding: 10px;
-      background: blue;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .messages {
+    .chat-box {
+      background: #eee;
       height: 300px;
       overflow-y: auto;
-      background: #5eff00;
       padding: 10px;
-      border-radius: 5px;
+      margin-bottom: 10px;
     }
-    .input-box {
-      display: flex;
-      margin-top: 10px;
-    }
-    .input-box input {
-      flex: 1;
-      padding: 10px;
+    .message {
+      margin-bottom: 5px;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="loginScreen">
-    <h2>Login</h2>
-    <input type="text" id="loginUsername" placeholder="Username">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p><a href="#" onclick="showRegister()">Create an account</a></p>
-  </div>
+<div class="container" id="auth">
+  <h2>Register / Login</h2>
+  <input id="username" placeholder="Username">
+  <input id="phone" placeholder="Phone">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+</div>
 
-  <div class="container hidden" id="registerScreen">
-    <h2>Create Account</h2>
-    <input type="text" id="username" placeholder="Enter username">
-    <input type="text" id="phone" placeholder="Enter phone number">
-    <input type="password" id="userPassword" placeholder="Enter password">
-    <button onclick="register()">Register</button>
-    <p><a href="#" onclick="showLogin()">Already have an account?</a></p>
-  </div>
+<div class="container" id="chat" style="display:none">
+  <h2>Chat Room</h2>
+  <div class="chat-box" id="messages"></div>
+  <input id="chatName" placeholder="Chat name">
+  <input id="messageInput" placeholder="Message">
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="loadMessages()">Refresh</button>
+</div>
 
-  <div class="container hidden" id="chatListScreen">
-    <h2>My Chats</h2>
-    <ul id="chatList"></ul>
-    <button onclick="logout()">Logout</button>
-  </div>
+<script>
+  const endpoint = "https://script.google.com/macros/s/AKfycby7vKCzqJnGcwOkGyFKkUeJBoebCWjk8vqSIh57YOo8Brzd8__AA96ImAI5TzZ9G_ZW8g/exec";
+  let currentUser = "";
 
-  <div class="container hidden" id="chatScreen">
-    <h2 id="chatTitle">Chat</h2>
-    <div class="messages" id="messages"></div>
-    <div class="input-box">
-      <input type="text" id="messageInput" placeholder="Type a message">
-      <button onclick="sendMessage()">➤</button>
-    </div>
-  </div>
-
-  <script>
-    let users = JSON.parse(localStorage.getItem('users')) || {};
-    let currentUser = localStorage.getItem('currentUser') || null;
-    let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || {};
-    let currentChat = '';
-
-    function showRegister() {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('registerScreen').classList.remove('hidden');
+  async function register() {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "register",
+        username: username.value,
+        phone: phone.value,
+        password: password.value
+      })
+    });
+    const text = await res.text();
+    if (text === "success") {
+      alert("Registered!");
+      currentUser = username.value;
+      showChat();
+    } else if (text === "exists") {
+      alert("Username already exists");
+    } else {
+      alert("Error");
     }
+  }
 
-    function showLogin() {
-      document.getElementById('registerScreen').classList.add('hidden');
-      document.getElementById('loginScreen').classList.remove('hidden');
+  async function login() {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "login",
+        username: username.value,
+        password: password.value
+      })
+    });
+    const text = await res.text();
+    if (text === "success") {
+      currentUser = username.value;
+      showChat();
+    } else {
+      alert("Login failed");
     }
+  }
 
-    function register() {
-      let username = document.getElementById('username').value;
-      let phone = document.getElementById('phone').value;
-      let password = document.getElementById('userPassword').value;
-      if (username && phone && password) {
-        if (users[username]) {
-          alert('Username already exists!');
-          return;
-        }
-        users[username] = { password, phone };
-        localStorage.setItem('users', JSON.stringify(users));
-        currentUser = username;
-        localStorage.setItem('currentUser', currentUser);
-        showChatList();
-      } else {
-        alert('Please enter all details!');
-      }
-    }
+  function showChat() {
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+  }
 
-    function login() {
-      let username = document.getElementById('loginUsername').value;
-      let password = document.getElementById('loginPassword').value;
-      if (users[username] && users[username].password === password) {
-        currentUser = username;
-        localStorage.setItem('currentUser', currentUser);
-        showChatList();
-      } else {
-        alert('Invalid username or password!');
-      }
-    }
+  async function sendMessage() {
+    const chat = chatName.value;
+    const msg = messageInput.value;
+    if (!chat || !msg) return alert("Enter chat and message");
+    await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "sendMessage",
+        username: currentUser,
+        chat: chat,
+        message: msg
+      })
+    });
+    messageInput.value = "";
+    loadMessages();
+  }
 
-    function showChatList() {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('registerScreen').classList.add('hidden');
-      document.getElementById('chatListScreen').classList.remove('hidden');
-      loadChatList();
-    }
-
-    function loadChatList() {
-      let chatListElement = document.getElementById('chatList');
-      chatListElement.innerHTML = '';
-      let chatNames = ['Chat 1', 'Chat 2'];
-      chatNames.forEach(chat => {
-        let li = document.createElement('li');
-        li.textContent = chat;
-        li.onclick = () => openChat(chat);
-        chatListElement.appendChild(li);
-      });
-    }
-
-    function openChat(chatName) {
-      currentChat = chatName;
-      document.getElementById('chatListScreen').classList.add('hidden');
-      document.getElementById('chatScreen').classList.remove('hidden');
-      document.getElementById('chatTitle').innerText = chatName;
-      loadMessages();
-    }
-
-    function sendMessage() {
-      let msg = document.getElementById('messageInput').value;
-      if (msg.trim() !== '') {
-        if (!chatHistory[currentChat]) {
-          chatHistory[currentChat] = [];
-        }
-        chatHistory[currentChat].push({ user: currentUser, message: msg });
-        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-        document.getElementById('messageInput').value = '';
-        loadMessages();
-      }
-    }
-
-    function loadMessages() {
-      let messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML = '';
-      if (chatHistory[currentChat]) {
-        chatHistory[currentChat].forEach(msgObj => {
-          let messageDiv = document.createElement('div');
-          messageDiv.textContent = msgObj.user + ': ' + msgObj.message;
-          messageDiv.style.background = msgObj.user === currentUser ? '#b3e5fc' : '#d3d3d3';
-          messageDiv.style.padding = '10px';
-          messageDiv.style.margin = '5px 0';
-          messageDiv.style.borderRadius = '5px';
-          messagesDiv.appendChild(messageDiv);
-        });
-      }
-    }
-
-    function logout() {
-      currentUser = null;
-      localStorage.removeItem('currentUser');
-      document.getElementById('chatListScreen').classList.add('hidden');
-      document.getElementById('loginScreen').classList.remove('hidden');
-    }
-
-    if (currentUser) {
-      showChatList();
-    }
-  </script>
+  async function loadMessages() {
+    const chat = chatName.value;
+    if (!chat) return alert("Enter chat name");
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getMessages",
+        chat: chat
+      })
+    });
+    const data = await res.json();
+    messages.innerHTML = data.map(row => `<div class="message"><b>${row[1]}</b>: ${row[2]}</div>`).join("");
+  }
+</script>
 </body>
 </html>
