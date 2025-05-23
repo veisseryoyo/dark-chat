@@ -19,7 +19,7 @@
       border-radius: 8px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-    input, button {
+    input, button, select {
       width: 100%;
       padding: 10px;
       margin: 5px 0;
@@ -58,8 +58,11 @@
 
 <div class="container" id="chat" style="display:none">
   <h2>Chat Room</h2>
-  <input id="chatName" placeholder="Chat name">
-  <button onclick="loadMessages()">Enter Chat</button>
+  <select id="chatSelect" onchange="selectChat()">
+    <option value="">-- Select a chat --</option>
+  </select>
+  <input id="newChatName" placeholder="Or enter new chat name">
+  <button onclick="enterChat()">Enter Chat</button>
   <div class="chat-box" id="messages"></div>
   <input id="messageInput" placeholder="Message">
   <button onclick="sendMessage()">Send</button>
@@ -70,6 +73,7 @@
   const endpoint = "https://script.google.com/macros/s/AKfycby7vKCzqJnGcwOkGyFKkUeJBoebCWjk8vqSIh57YOo8Brzd8__AA96ImAI5TzZ9G_ZW8g/exec";
   let currentUser = "";
   let messageRows = [];
+  let currentChat = "";
 
   async function register() {
     const res = await fetch(endpoint, {
@@ -114,18 +118,39 @@
   function showChat() {
     document.getElementById("auth").style.display = "none";
     document.getElementById("chat").style.display = "block";
+    loadChatList();
+  }
+
+  function selectChat() {
+    const selected = document.getElementById("chatSelect").value;
+    document.getElementById("newChatName").value = selected;
+    currentChat = selected;
+    loadMessages();
+  }
+
+  function enterChat() {
+    const chatInput = document.getElementById("newChatName").value.trim();
+    if (!chatInput) return alert("Please enter or select a chat name");
+    currentChat = chatInput;
+    loadMessages();
+    if (![...chatSelect.options].some(o => o.value === chatInput)) {
+      const option = document.createElement("option");
+      option.text = chatInput;
+      option.value = chatInput;
+      chatSelect.add(option);
+    }
+    chatSelect.value = chatInput;
   }
 
   async function sendMessage() {
-    const chat = chatName.value.trim();
     const msg = messageInput.value.trim();
-    if (!chat || !msg) return alert("Enter chat name and message");
+    if (!currentChat || !msg) return alert("Enter chat and message");
     const res = await fetch(endpoint, {
       method: "POST",
       body: JSON.stringify({
         action: "sendMessage",
         username: currentUser,
-        chat: chat,
+        chat: currentChat,
         message: msg
       })
     });
@@ -139,13 +164,12 @@
   }
 
   async function loadMessages() {
-    const chat = chatName.value.trim();
-    if (!chat) return alert("Enter chat name");
+    if (!currentChat) return;
     const res = await fetch(endpoint, {
       method: "POST",
       body: JSON.stringify({
         action: "getMessages",
-        chat: chat
+        chat: currentChat
       })
     });
     const data = await res.json();
@@ -176,6 +200,20 @@
   function changeBackground() {
     const color = prompt("Enter a color (name or hex):");
     if (color) document.body.style.background = color;
+  }
+
+  async function loadChatList() {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getMessages",
+        chat: "__ALL__"
+      })
+    });
+    const data = await res.json();
+    const uniqueChats = [...new Set(data.map(r => r.chat))];
+    chatSelect.innerHTML = '<option value="">-- Select a chat --</option>' +
+      uniqueChats.map(chat => `<option value="${chat}">${chat}</option>`).join("");
   }
 </script>
 </body>
