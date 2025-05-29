@@ -1,0 +1,334 @@
+:root {
+    --ios-blue: #007aff;
+    --ios-gray-light: #f6f6f6;
+    --ios-gray-dark: #e9e9eb;
+    --text-color-dark: #333;
+    --text-color-light: #fff;
+    --bubble-sent: #007aff;
+    --bubble-received: #e5e5ea;
+}
+
+/* Base styles */
+body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--ios-gray-light);
+    color: var(--text-color-dark);
+}
+
+#app {
+    width: 100%;
+    max-width: 600px; /* Max width for desktop */
+    height: 100vh; /* Full height on mobile */
+    max-height: 900px; /* Max height for desktop */
+    background-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 10px; /* Rounded corners for the app container */
+}
+
+/* Screen management */
+.screen {
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Login Screen */
+#login-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#login-screen h1 {
+    color: var(--ios-blue);
+    margin-bottom: 30px;
+}
+
+#registration-form {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    max-width: 350px;
+}
+
+#registration-form label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    text-align: left;
+}
+
+#registration-form input[type="text"],
+#registration-form input[type="url"] {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--ios-gray-dark);
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+}
+
+#registration-form input[type="text"]:focus,
+#registration-form input[type="url"]:focus {
+    border-color: var(--ios-blue);
+}
+
+#login-screen button {
+    background-color: var(--ios-blue);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#login-screen button:hover {
+    background-color: #0056b3;
+}
+
+/* Chat Screen */
+#chat-screen {
+    overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+#chat-screen header {
+    background-color: var(--ios-gray-light);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--ios-gray-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+#chat-screen header h2 {
+    margin: 0;
+    color: var(--ios-blue);
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+}
+
+#logout-button, #background-color-picker {
+    background-color: var(--ios-blue);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#logout-button:hover, #background-color-picker:hover {
+    background-color: #0056b3;
+}
+
+#messages-container {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: var(--ios-gray-light); /* Default chat background */
+}
+
+.message-wrapper {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 5px;
+    animation: fadeIn 0.3s ease-out; /* Animation for new messages */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-wrapper.sent {
+    justify-content: flex-end;
+}
+
+.message-wrapper.received {
+    justify-content: flex-start;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+.message-bubble {
+    padding: 10px 14px;
+    border-radius: 20px;
+    max-width: 70%;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+}
+
+.message-wrapper.sent .message-bubble {
+    background-color: var(--bubble-sent);
+    color: var(--text-color-light);
+    border-bottom-right-radius: 4px; /* Tail effect */
+}
+
+.message-wrapper.received .message-bubble {
+    background-color: var(--bubble-received);
+    color: var(--text-color-dark);
+    border-bottom-left-radius: 4px; /* Tail effect */
+}
+
+.message-text {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.message-time {
+    font-size: 11px;
+    margin-top: 5px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7); /* For sent messages */
+}
+
+.message-wrapper.received .message-time {
+    color: rgba(0, 0, 0, 0.5); /* For received messages */
+}
+
+.delete-message-button {
+    background: none;
+    border: none;
+    color: red;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    align-self: center; /* Align with message bubble */
+}
+
+.message-wrapper:hover .delete-message-button {
+    opacity: 1;
+}
+
+#message-form {
+    display: flex;
+    padding: 10px;
+    background-color: var(--ios-gray-light);
+    border-top: 1px solid var(--ios-gray-dark);
+    align-items: center;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--ios-gray-dark);
+    border-radius: 20px;
+    margin-right: 10px;
+    font-size: 16px;
+    resize: none; /* Disable manual resize */
+    min-height: 20px; /* Make it smaller */
+    max-height: 100px; /* Limit expansion */
+    overflow-y: auto;
+    box-sizing: border-box; /* Include padding in height */
+    outline: none;
+    font-family: 'SF Pro Display', sans-serif;
+}
+
+#message-input:focus {
+    border-color: var(--ios-blue);
+}
+
+#send-button {
+    background-color: var(--ios-blue);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+
+#send-button svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    transform: rotate(45deg); /* Rotate for paper plane effect */
+    margin-top: -2px; /* Adjust icon position */
+    margin-right: -2px;
+}
+
+#send-button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #app {
+        border-radius: 0; /* No rounded corners on mobile */
+        max-height: 100vh; /* Full height on mobile */
+    }
+
+    #chat-screen header {
+        padding: 10px 15px;
+    }
+
+    #chat-screen header h2 {
+        font-size: 20px;
+    }
+
+    #logout-button, #background-color-picker {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .message-bubble {
+        max-width: 75%;
+        padding: 8px 12px;
+        font-size: 15px;
+    }
+
+    #message-input {
+        padding: 8px 12px;
+        font-size: 15px;
+    }
+
+    #send-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    #send-button svg {
+        width: 18px;
+        height: 18px;
+    }
+}
